@@ -2,7 +2,7 @@ import { useGSAP } from "@gsap/react"
 import gsap from "gsap"
 import { useRef } from "react"
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { ScrollSmoother } from "gsap/ScrollSmoother"; 
+import { ScrollSmoother } from "gsap/ScrollSmoother";
 
 
 gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
@@ -11,6 +11,15 @@ export default function Portofolio() {
 
   const zoneRef = useRef(null);
   const strength = 0.3;
+
+  const projects = [
+    { title: "Project 01", desc: "Deskripsi 1", img: "/project1.png" },
+    { title: "Project 02", desc: "Deskripsi 2", img: "/project2.png" },
+    { title: "Project 03", desc: "Deskripsi 3", img: "/project3.png" },
+    { title: "Project 04", desc: "Deskripsi 4", img: "/project4.png" },
+    { title: "Project 05", desc: "Deskripsi 5", img: "/project5.png" },
+    { title: "Project 06", desc: "Deskripsi 6", img: "/project6.jpeg" },
+  ];
 
   useGSAP(() => {
     ScrollSmoother.create({
@@ -99,7 +108,7 @@ export default function Portofolio() {
       }
     });
 
-    // --- ANIMASI ACCORDION LIST 
+    // ANIMASI ACCORDION LIST 
     const serviceRows = gsap.utils.toArray(".service-row");
 
     serviceRows.forEach((row, index) => {
@@ -112,6 +121,74 @@ export default function Portofolio() {
         end: "bottom bottom",
         pin: true,
         pinSpacing: false,
+      });
+    });
+
+    // Fungsi untuk animasi teks angka
+    const animateNumber = (newIndex) => {
+      const counterDisplay = document.querySelector(".current-index");
+
+      gsap.to(counterDisplay, {
+        y: -20,            // Geser ke atas
+        opacity: 0,        // Hilang
+        duration: 0.2,
+        ease: "power2.in",
+        onComplete: () => {
+          counterDisplay.innerText = `0${newIndex}`; // Ganti angka
+          gsap.fromTo(counterDisplay,
+            { y: 20, opacity: 0 }, // Muncul dari bawah
+            { y: 0, opacity: 1, duration: 0.3, ease: "power2.out" }
+          );
+        }
+      });
+    };
+
+    //animasi pinned list project
+    const pinSection = document.querySelector(".project-pin-container");
+    const gallery = document.querySelector(".gallery-scroll");
+
+    // Pin container-nya biar diem di layar
+    ScrollTrigger.create({
+      trigger: pinSection,
+      start: "top top",
+      end: () => `+=${gallery.offsetHeight - window.innerHeight}`,
+      pin: true,
+      pinSpacing: true,
+      scrub: true,
+    });
+
+    // Geser gallery ke atas
+    gsap.to(gallery, {
+      y: -(gallery.offsetHeight - window.innerHeight),
+      ease: "none",
+      scrollTrigger: {
+        trigger: pinSection,
+        start: "top top",
+        end: () => `+=${gallery.offsetHeight - window.innerHeight}`,
+        scrub: 1,
+      }
+    });
+
+    // Ubah angka indikator
+    // Variabel buat nge-track angka biar gak nge-glitch kalau scroll cepet
+    let activeIndex = 1;
+
+    gsap.utils.toArray(".project-card").forEach((card, i) => {
+      ScrollTrigger.create({
+        trigger: card,
+        start: "top center",
+        onEnter: () => {
+          if (activeIndex !== i + 1) {
+            animateNumber(i + 1);
+            activeIndex = i + 1;
+          }
+        },
+        onEnterBack: () => {
+          if (activeIndex !== i + 1) {
+            animateNumber(i + 1);
+            activeIndex = i + 1;
+          }
+        },
       });
     });
 
@@ -308,6 +385,34 @@ export default function Portofolio() {
               </div>
             </div>
           </div>
+          <section className="project-pin-container w-full h-screen bg-[#272426] overflow-hidden flex">
+
+            {/* Kiri: Indikator Angka */}
+            <div className="w-1/3 h-full flex flex-col justify-center items-center ">
+              <div className="text-[150px] font-bold text-[#ced6c6] current-index">01</div>
+              <p className="uppercase tracking-widest text-[#ced6c6]/50">Selected Works</p>
+            </div>
+
+            {/* Kanan: Gallery */}
+            <div className="w-2/3 h-full overflow-hidden relative">
+              <div className="gallery-scroll flex flex-col gap-20 py-30 px-10">
+                {projects.map((proj, i) => (
+                  <div key={i} className="project-card w-full h-[70vh] flex flex-col justify-center">
+                    {/* Placeholder kalau foto gak muncul: bg-gray-400 */}
+                    <div className="w-full h-full rounded-2xl overflow-hidden shadow-2xl bg-gray-400">
+                      <img
+                        src={proj.img}
+                        alt={proj.title}
+                        className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700"
+                        onError={(e) => e.target.style.display = 'none'} // Biar gak rusak layout kalau foto gak ketemu
+                      />
+                    </div>
+                    <h3 className="text-3xl font-bold text-[#4f5645] mt-6">{proj.title}</h3>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
         </div>
 
         {/* <div classNameName="section w-full h-screen bg-neutral-900 text-white flex items-center justify-center">
